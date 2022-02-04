@@ -142,8 +142,6 @@ class Model:
                 optimizer_Calibration.zero_grad()
                 loss.backward()
                 optimizer_Calibration.step()
-            for params in optimizer_Calibration.param_groups:
-                params['lr'] = 0.001 * math.pow(0.1, math.floor((self.epoch + 1) / 35))
 
         return calibration_parameter
 
@@ -163,12 +161,6 @@ class Model:
             total_angle_error += angle_error
 
         return total_angle_error / batch_idx + 1
-
-    def losses_plot(self):
-        plt.plot(self.losses)
-        plt.ylabel("cost")
-        plt.xlabel("epoch")
-        plt.show()
 
     def angle_error_plot(self):
         plt.plot(self.train_angle_error)

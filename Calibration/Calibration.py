@@ -2,7 +2,9 @@ import torch
 from torch.autograd import Variable
 
 
-def create(M, N):
+def create(M, N, seed=None):
+    if seed is not None:
+        torch.manual_seed(seed)
     return Variable(torch.randn(M, N), requires_grad=True)
 
 

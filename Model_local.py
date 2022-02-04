@@ -98,7 +98,7 @@ class Model:
 
     def validate(self, val_cali_loader, val_val_loader, val_test_loader):
         self.Net.eval()
-        calibration_parameter = Calibration.create(1, self.num_cali_para)
+        calibration_parameter = Calibration.create(1, self.num_cali_para, self.num_cali_para)
         optimizer_Calibration = torch.optim.SGD([calibration_parameter], lr=0.1)
         scale = 50
         epoch = 0
@@ -140,7 +140,7 @@ class Model:
         :return: calibration parameters after training
         """
         self.Net.eval()
-        calibration_parameter = Calibration.create(1, self.num_cali_para)
+        calibration_parameter = Calibration.create(1, self.num_cali_para, self.num_cali_para)
         optimizer_Calibration = torch.optim.SGD([calibration_parameter], lr=0.1)
         for i in range(epochs):
             for batch_idx, (data, target, index) in enumerate(cali_loader):
@@ -150,8 +150,6 @@ class Model:
                 optimizer_Calibration.zero_grad()
                 loss.backward()
                 optimizer_Calibration.step()
-            for params in optimizer_Calibration.param_groups:
-                params['lr'] = 0.001 * math.pow(0.1, math.floor((self.epoch + 1) / 35))
 
         return calibration_parameter
 
