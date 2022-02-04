@@ -26,6 +26,8 @@ class Model:
         }
         self.test_angle_error = 0
 
+        self.last_vali_cali_epoch = 0
+
         if not first_train:
             self.load(model_path)
 
@@ -71,9 +73,9 @@ class Model:
                 self.optimizer_Net.step()
                 self.optimizer_Calibration.step()
             for params in self.optimizer_Net.param_groups:
-                params['lr'] = 0.01 * math.pow(0.1, math.floor((self.epoch + 1) / 40))
+                params['lr'] = 0.01 * math.pow(0.1, math.floor((self.epoch + 1) / 35))
             for params in self.optimizer_Calibration.param_groups:
-                params['lr'] = 0.1 * math.pow(0.1, math.floor((self.epoch + 1) / 40))
+                params['lr'] = 0.1 * math.pow(0.1, math.floor((self.epoch + 1) / 35))
             total_angle_error /= batch_idx + 1
             self.train_angle_error.append(total_angle_error)
             validation = self.validate(val['val_cali_loader'], val['val_val_loader'], val['val_test_loader'])
@@ -82,7 +84,7 @@ class Model:
             if i > 5:
                 mean_last_5 = (self.validation['test_angle_error'][i - 2] + self.validation['test_angle_error'][i - 3] + self.validation['test_angle_error'][i - 4] +
                                self.validation['test_angle_error'][i - 5] + self.validation['test_angle_error'][i - 6]) / 5
-                if self.validation['test_angle_error'][i-1] >= mean_last_5:
+                if format(self.validation['test_angle_error'][i-1], '.2f') >= format(mean_last_5, '.2f'):
                     break
         best_epoch = self.validation['test_angle_error'].index(min(self.validation['test_angle_error']))
         best_epoch_cali = self.validation['best_epoch_cali'][best_epoch]
@@ -94,9 +96,9 @@ class Model:
 
     def validate(self, val_cali_loader, val_val_loader, val_test_loader):
         self.Net.eval()
-        calibration_parameter = Calibration.create(1, self.num_cali_para)
+        calibration_parameter = Calibration.create(1, self.num_cali_para, self.num_cali_para)
         optimizer_Calibration = torch.optim.SGD([calibration_parameter], lr=0.1)
-        scale = 25
+        scale = 50
         epoch = 0
         val_angle_error = []
         calibration_parameters = []
@@ -116,7 +118,7 @@ class Model:
                 calibration_parameters.append(calibration_parameter)
                 if epoch_scale > 5:
                     mean_last_5 = (val_angle_error[epoch_scale-2]+val_angle_error[epoch_scale-3]+val_angle_error[epoch_scale-4]+val_angle_error[epoch_scale-5]+val_angle_error[epoch_scale-6]) / 5
-                    if val_angle_error[epoch_scale-1] >= mean_last_5:
+                    if format(val_angle_error[epoch_scale-1], '.2f') >= format(mean_last_5, '.2f'):
                         break
         best_epoch_cali = val_angle_error.index(min(val_angle_error))
         test_angle_error = self.test(val_test_loader, calibration_parameters[best_epoch_cali].reshape(1, -1))
@@ -133,11 +135,12 @@ class Model:
         :return: calibration parameters after training
         """
         self.Net.eval()
-        calibration_parameter = Calibration.create(1, self.num_cali_para)
+        calibration_parameter = Calibration.create(1, self.num_cali_para, self.num_cali_para)
         optimizer_Calibration = torch.optim.SGD([calibration_parameter], lr=0.1)
         for i in range(epochs):
             for batch_idx, (data, target, index) in enumerate(cali_loader):
                 data, target, parameters = Variable(data).to(self.device), Variable(target).to(self.device), Calibration.stack_parameters(calibration_parameter, len(index)).to(self.device)
+                data, target, parameters = torch.cat((data, data), 0), torch.cat((target, target), 0), torch.cat((parameters, parameters), 0)
                 AL = self.Net.forward(data, parameters)
                 loss = F.mse_loss(AL, target)
                 optimizer_Calibration.zero_grad()
@@ -161,7 +164,7 @@ class Model:
             angle_error = util.angle_calculation_avg(AL.cpu().detach().numpy(), target.cpu().detach().numpy())
             total_angle_error += angle_error
 
-        return total_angle_error / batch_idx + 1
+        return total_angle_error / (batch_idx + 1)
 
     def angle_error_plot(self):
         plt.plot(self.train_angle_error)
