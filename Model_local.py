@@ -95,7 +95,7 @@ class Model:
         test_parameters = self.calibrate(test['test_cali_loader'], best_epoch_cali)
         test_angle_error = self.test(test['test_test_loader'], test_parameters)
         self.test_angle_error = test_angle_error
-        self.epoch += epochs
+        self.epoch += i
         self.save()
 
     def validate(self, val_cali_loader, val_val_loader, val_test_loader):
@@ -106,15 +106,15 @@ class Model:
         epoch = 0
         val_angle_error = []
         calibration_parameters = []
+        for batch_idx, (data, target, index) in enumerate(val_cali_loader):
+            data, target, parameters = Variable(data).to(self.device), Variable(target).to(self.device), Calibration.stack_parameters(calibration_parameter, len(index)).to(self.device)
+            data, target, parameters = torch.cat((data, data), 0), torch.cat((target, target), 0), torch.cat((parameters, parameters), 0)
         while True:
-            for batch_idx, (data, target, index) in enumerate(val_cali_loader):
-                data, target, parameters = Variable(data).to(self.device), Variable(target).to(self.device), Calibration.stack_parameters(calibration_parameter, len(index)).to(self.device)
-                data, target, parameters = torch.cat((data, data), 0), torch.cat((target, target), 0), torch.cat((parameters, parameters), 0)
-                AL = self.Net.forward(data, parameters)
-                loss = F.mse_loss(AL, target)
-                optimizer_Calibration.zero_grad()
-                loss.backward()
-                optimizer_Calibration.step()
+            AL = self.Net.forward(data, parameters)
+            loss = F.mse_loss(AL, target)
+            optimizer_Calibration.zero_grad()
+            loss.backward()
+            optimizer_Calibration.step()
             epoch += 1
             if epoch % scale == 1:
                 epoch_scale = math.floor(epoch / scale)
@@ -131,7 +131,7 @@ class Model:
         test_angle_error = self.test(val_test_loader, calibration_parameters[best_epoch_cali].reshape(1, -1))
         print('Bes Cali Epoch: {}  Test Angle Error: {}'.format(best_epoch_cali, test_angle_error))
         return {
-            'best_epoch_cali': best_epoch_cali * scale,
+            'best_epoch_cali': (best_epoch_cali+1) * scale,
             'test_angle_error': test_angle_error
         }
 
@@ -145,15 +145,15 @@ class Model:
         self.Net.eval()
         calibration_parameter = Calibration.create(1, self.num_cali_para, self.num_cali_para)
         optimizer_Calibration = torch.optim.SGD([calibration_parameter], lr=0.1)
+        for batch_idx, (data, target, index) in enumerate(cali_loader):
+            data, target, parameters = Variable(data).to(self.device), Variable(target).to(self.device), Calibration.stack_parameters(calibration_parameter, len(index)).to(self.device)
+            data, target, parameters = torch.cat((data, data), 0), torch.cat((target, target), 0), torch.cat((parameters, parameters), 0)
         for i in range(epochs):
-            for batch_idx, (data, target, index) in enumerate(cali_loader):
-                data, target, parameters = Variable(data).to(self.device), Variable(target).to(self.device), Calibration.stack_parameters(calibration_parameter, len(index)).to(self.device)
-                data, target, parameters = torch.cat((data, data), 0), torch.cat((target, target), 0), torch.cat((parameters, parameters), 0)
-                AL = self.Net.forward(data, parameters)
-                loss = F.mse_loss(AL, target)
-                optimizer_Calibration.zero_grad()
-                loss.backward()
-                optimizer_Calibration.step()
+            AL = self.Net.forward(data, parameters)
+            loss = F.mse_loss(AL, target)
+            optimizer_Calibration.zero_grad()
+            loss.backward()
+            optimizer_Calibration.step()
 
         return calibration_parameter
 
