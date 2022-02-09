@@ -88,7 +88,7 @@ class Model:
             if i > 5:
                 mean_last_5 = (self.validation['test_angle_error'][i - 2] + self.validation['test_angle_error'][i - 3] + self.validation['test_angle_error'][i - 4] +
                                self.validation['test_angle_error'][i - 5] + self.validation['test_angle_error'][i - 6]) / 5
-                if format(self.validation['test_angle_error'][i-1], '.2f') >= format(mean_last_5, '.2f'):
+                if float(format(self.validation['test_angle_error'][i-1], '.2f')) >= float(format(mean_last_5, '.2f')):
                     break
         best_epoch = self.validation['test_angle_error'].index(min(self.validation['test_angle_error']))
         best_epoch_cali = self.validation['best_epoch_cali'][best_epoch]
@@ -125,7 +125,7 @@ class Model:
                     print('Cali Epoch: {}  Angle Error: {}'.format(epoch_scale+1, angle_error))
                 if epoch_scale > 5:
                     mean_last_5 = (val_angle_error[epoch_scale-2]+val_angle_error[epoch_scale-3]+val_angle_error[epoch_scale-4]+val_angle_error[epoch_scale-5]+val_angle_error[epoch_scale-6]) / 5
-                    if format(val_angle_error[epoch_scale-1], '.2f') >= format(mean_last_5, '.2f'):
+                    if float(format(val_angle_error[epoch_scale-1], '.2f')) >= float(format(mean_last_5, '.2f')):
                         break
         best_epoch_cali = val_angle_error.index(min(val_angle_error))
         test_angle_error = self.test(val_test_loader, calibration_parameters[best_epoch_cali].reshape(1, -1))
