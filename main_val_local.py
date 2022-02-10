@@ -1,6 +1,6 @@
 from ResNet18 import ResNet18
 import torch
-import Calibration.Calibration as Calibration
+import Calibration as Calibration
 from Model import Model
 
 

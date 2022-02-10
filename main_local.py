@@ -1,7 +1,7 @@
 from ResNet18 import ResNet18
 import torch
 from torch.utils.data import DataLoader
-import Calibration.Calibration as Calibration
+import Calibration as Calibration
 from Model_local import Model
 from Dataset import MyDataset, transform, dataset_division, val_set_division, test_set_division
 
@@ -60,5 +60,4 @@ def train(first_train, network, lr, normalized, epochs, num_cali_para, num_cali_
 if __name__ == '__main__':
     for TestSet_Index in range(1):
         train(First_Train, ResNet18, LR, Normalized, 80, N, M, TestSet_Index)
-
 

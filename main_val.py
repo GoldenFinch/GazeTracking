@@ -1,7 +1,7 @@
 import argparse
 from ResNet18 import ResNet18
 import torch
-import Calibration.Calibration as Calibration
+import Calibration as Calibration
 from Model import Model
 
 parser = argparse.ArgumentParser()
@@ -50,5 +50,4 @@ def validate(first_train, network, lr, normalized, epochs, num_cali_para, num_ca
 if __name__ == '__main__':
     for TestSet_Index in range(15):
         validate(First_Train, ResNet18, LR, Normalized, 80, N, M, TestSet_Index)
-
 

@@ -3,9 +3,8 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 import os
 import math
-import matplotlib.pyplot as plt
 import util
-import Calibration.Calibration as Calibration
+import Calibration as Calibration
 
 
 class Model:
@@ -116,7 +115,7 @@ class Model:
             loss.backward()
             optimizer_Calibration.step()
             epoch += 1
-            if epoch % scale == 1:
+            if epoch % scale == 0:
                 epoch_scale = math.floor(epoch / scale)
                 angle_error = self.test(val_val_loader, calibration_parameter)
                 val_angle_error.append(angle_error)
@@ -173,10 +172,4 @@ class Model:
             total_angle_error += angle_error
 
         return total_angle_error / (batch_idx + 1)
-
-    def angle_error_plot(self):
-        plt.plot(self.train_angle_error)
-        plt.ylabel("angle error")
-        plt.xlabel("epoch")
-        plt.show()
 

@@ -2,7 +2,7 @@ import argparse
 from ResNet18 import ResNet18
 import torch
 from torch.utils.data import DataLoader
-import Calibration.Calibration as Calibration
+import Calibration as Calibration
 from Model import Model
 from Dataset import MyDataset, transform, dataset_division, val_set_division, test_set_division
 
