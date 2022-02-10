@@ -25,8 +25,6 @@ class Model:
         }
         self.test_angle_error = 0
 
-        self.last_vali_cali_epoch = 0
-
         if not first_train:
             self.load(model_path)
 
